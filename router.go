@@ -6,7 +6,7 @@ import (
 )
 
 type Route struct {
-	Method string
+	Method  string
 	Pattern string
 	Handler http.Handler
 }
@@ -26,7 +26,7 @@ func (r *Router) AddRoute(method, path string, handler http.Handler) {
 func (r *Router) getHandler(method, path string) http.Handler {
 	for _, route := range r.routes {
 		re := regexp.MustCompile(route.Pattern)
-		if route.Method == method && re.MatchString(path){
+		if route.Method == method && re.MatchString(path) {
 			return route.Handler
 		}
 	}
@@ -49,7 +49,7 @@ func (r *Router) DELETE(path string, handler Handler) {
 	r.AddRoute("DELETE", path, handler)
 }
 
-func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request){
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	path := req.URL.Path
 	method := req.Method
 
@@ -59,6 +59,3 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request){
 
 	handler.ServeHTTP(w, req)
 }
-
-
-

@@ -6,23 +6,23 @@ import (
 	"testing"
 )
 
-func testHandlerGET(r *http.Request) (int, map[string]interface{}){
-	return http.StatusOK, map[string]interface{}{"data" :"test"}
+func testHandlerGET(r *http.Request) (int, map[string]interface{}) {
+	return http.StatusOK, map[string]interface{}{"data": "test"}
 
 }
 
-func testHandlerPOST(r *http.Request) (int, map[string]interface{}){
-	return http.StatusCreated, map[string]interface{}{"data" :"test"}
+func testHandlerPOST(r *http.Request) (int, map[string]interface{}) {
+	return http.StatusCreated, map[string]interface{}{"data": "test"}
 
 }
 
-func testHandlerPUT(r *http.Request) (int, map[string]interface{}){
-	return http.StatusOK, map[string]interface{}{"data" :"test"}
+func testHandlerPUT(r *http.Request) (int, map[string]interface{}) {
+	return http.StatusOK, map[string]interface{}{"data": "test"}
 
 }
 
-func testHandlerDELETE(r *http.Request) (int, map[string]interface{}){
-	return http.StatusNoContent, map[string]interface{}{"data" :"test"}
+func testHandlerDELETE(r *http.Request) (int, map[string]interface{}) {
+	return http.StatusNoContent, map[string]interface{}{"data": "test"}
 
 }
 
@@ -33,17 +33,16 @@ func TestRouter(t *testing.T) {
 	r.PUT("/test$", testHandlerPUT)
 	r.DELETE("/test$", testHandlerDELETE)
 
-	tc := []struct{
+	tc := []struct {
 		method string
-		path string
-		code int
-		status string
-	} {
-		{"GET", "/test", http.StatusOK, "SUCCESS"},
-		{"POST", "/test", http.StatusCreated, "SUCCESS"},
-		{"PUT", "/test", http.StatusOK, "SUCCESS"},
-		{"DELETE", "/test", http.StatusNoContent, "SUCCESS"},
-		{"DELETE", "/test1", http.StatusNotFound, "SUCCESS"},
+		path   string
+		code   int
+	}{
+		{"GET", "/test", http.StatusOK},
+		{"POST", "/test", http.StatusCreated},
+		{"PUT", "/test", http.StatusOK},
+		{"DELETE", "/test", http.StatusNoContent},
+		{"DELETE", "/test1", http.StatusNotFound},
 	}
 
 	for _, c := range tc {
