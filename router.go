@@ -33,19 +33,19 @@ func (r *Router) getHandler(method, path string) http.Handler {
 	return http.NotFoundHandler()
 }
 
-func (r *Router) GET(path string, handler http.Handler) {
+func (r *Router) GET(path string, handler Handler) {
 	r.AddRoute("GET", path, handler)
 }
 
-func (r *Router) POST(path string, handler http.Handler) {
+func (r *Router) POST(path string, handler Handler) {
 	r.AddRoute("POST", path, handler)
 }
 
-func (r *Router) PUT(path string, handler http.Handler) {
+func (r *Router) PUT(path string, handler Handler) {
 	r.AddRoute("PUT", path, handler)
 }
 
-func (r *Router) DELETE(path string, handler http.Handler) {
+func (r *Router) DELETE(path string, handler Handler) {
 	r.AddRoute("DELETE", path, handler)
 }
 
