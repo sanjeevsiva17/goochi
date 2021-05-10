@@ -1,63 +1,116 @@
 package configs
 
 import (
+	"bufio"
 	"os"
 	"strings"
 
-	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 type Config interface {
 	Get(key string) string
 	GetOrDefault(key, defaultVal string) string
-	Set(key, value string) error
 	ExpandEnv(key string) string
 }
 
+type fileOp interface {
+	Open(file string) (*os.File, error)
+}
+
 type config struct {
-	folderPath string
-	logger     logger
+	files  []string
+	logger *logrus.Logger
+	fileOp fileOp
 }
 
 type logger interface {
 	Log(a ...interface{})
 }
 
-func NewConfigProvider(log logger, configFolder string) Config {
-	provider := &config{
-		folderPath: configFolder,
-		logger:     log,
+func NewConfigProvider(log *logrus.Logger, overload bool, fileName ...string) Config {
+	c := &config{
+		files:  fileName,
+		logger: log,
 	}
 
-	provider.readConfig(configFolder)
+	if overload {
+		c.overLoad()
+	}
 
-	return provider
+	c.load()
+
+	return c
 }
 
-// readConfig(logger Logger) loads the environment variables from .env file
-// Priority Order is Environment Variable > .env.X file > .env file
-// if there is a need to overwrite any of the environment variable present in the ./env
-// then it can be done by creating .env.local file
-// or by specifying the file prefix in environment variable APP_ENV.
-func (c *config) readConfig(confLocation string) {
-	defaultFile := confLocation + "/.env"
+func (c *config) load() {
+	for _, file := range c.files {
+		envVarMap, err := parseFile(file)
+		if err != nil {
+			c.logger.Errorf("error loading config from file: %v, err: %v", file, err)
+		}
 
-	env := os.Getenv("APP_ENV")
-	if env == "" {
-		env = "local"
+		for k, v := range envVarMap {
+			if _, ok := os.LookupEnv(k); !ok {
+				os.Setenv(k, v)
+			}
+		}
+
+		c.logger.Infof("loaded config from: %v", file)
+	}
+}
+
+func (c *config) overLoad() {
+	for _, file := range c.files {
+		envVarMap, err := parseFile(file)
+		if err != nil {
+			continue
+		}
+
+		for k, v := range envVarMap {
+			_ = os.Setenv(k, v)
+		}
+	}
+}
+
+func parseFile(fileName string) (map[string]string, error) {
+	resMap := make(map[string]string)
+
+	fd, err := os.Open(fileName)
+	if err != nil {
+		return resMap, err
 	}
 
-	overrideFile := confLocation + "/." + env + ".env"
+	scanner := bufio.NewScanner(fd)
 
-	err := godotenv.Load(overrideFile)
-	if err == nil {
-		c.logger.Log("Loaded config from file: ", overrideFile)
+	defer fd.Close()
+
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		text := scanner.Text()
+
+		if strings.HasPrefix(strings.TrimSpace(text), "#") {
+			continue
+		}
+
+		var keyVal []string
+
+		ok := strings.Contains(text, ":")
+		if ok {
+			keyVal = strings.Split(text, ":")
+
+		} else if ok := strings.Contains(text, "="); ok {
+			keyVal = strings.Split(text, "=")
+
+		}
+
+		if len(keyVal) == 2 {
+			resMap[strings.TrimSpace(keyVal[0])] = strings.TrimSpace(keyVal[1])
+		}
 	}
 
-	err = godotenv.Load(defaultFile)
-	if err == nil {
-		c.logger.Log("Loaded config from file: ", defaultFile)
-	}
+	return resMap, nil
 }
 
 func (c *config) Get(key string) string {
@@ -72,13 +125,8 @@ func (c *config) GetOrDefault(key, defaultVal string) string {
 	return defaultVal
 }
 
-func (c *config) Set(key, value string) error {
-	return os.Setenv(key, value)
-}
-
 func (c *config) ExpandEnv(key string) string {
 	val := os.Getenv(key)
-	val = strings.Replace(val, "{", "${", -1)
 
 	return os.ExpandEnv(val)
 }
