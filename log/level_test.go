@@ -1,7 +1,6 @@
 package log
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -43,27 +42,6 @@ func TestLevel_String(t *testing.T) {
 
 		if resp != v.output {
 			t.Errorf("[TEST CASE %d]Failed. Expected %v\tGot %v\n", i+1, v.output, resp)
-		}
-	}
-}
-
-func TestLevel_MarshalJSON(t *testing.T) {
-	testcases := []struct {
-		input  level
-		output []byte
-	}{
-		{Info, []byte(`"INFO"`)},
-		{Warn, []byte(`"WARN"`)},
-		{Error, []byte(`"ERROR"`)},
-		{Fatal, []byte(`"FATAL"`)},
-		{Debug, []byte(`"DEBUG"`)},
-	}
-
-	for i, v := range testcases {
-		resp, _ := v.input.MarshalJSON()
-
-		if !reflect.DeepEqual(resp, v.output) {
-			t.Errorf("[TEST CASE %d]Failed. Expected %s\tGot %s\n", i+1, v.output, resp)
 		}
 	}
 }

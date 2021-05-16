@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -18,7 +17,7 @@ type logger struct {
 
 // log does the actual logging. This function creates the logEntry message and outputs it in color format
 // in terminal context and gives out json in non terminal context. Also, sends to echo if client is present.
-func (l *logger) log(level level, args string) {
+func (l *logger) log(level level, args interface{}) {
 	if l.level < level {
 		return
 	}
@@ -35,11 +34,6 @@ func (l *logger) log(level level, args string) {
 	} else {
 		_ = json.NewEncoder(l.out).Encode(e)
 	}
-}
-
-func isJSON(s string) (ok bool, hashmap map[string]interface{}) {
-	var js map[string]interface{}
-	return json.Unmarshal([]byte(s), &js) == nil, js
 }
 
 func (l *logger) Log(args ...interface{}) {
@@ -92,22 +86,10 @@ func (l *logger) Fatalf(format string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func NewLogger(level string) Logger {
+func NewLogger(level level) Logger {
 	l := &logger{
-		out: os.Stdout,
-	}
-
-	switch strings.ToUpper(level) {
-	case "INFO":
-		l.level = Info
-	case "WARN":
-		l.level = Warn
-	case "DEBUG":
-		l.level = Debug
-	case "FATAL":
-		l.level = Fatal
-	case "ERROR":
-		l.level = Error
+		out:   os.Stdout,
+		level: level,
 	}
 
 	// Set terminal to ensure proper output format.

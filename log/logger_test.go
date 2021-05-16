@@ -2,29 +2,22 @@ package log
 
 import (
 	"bytes"
-	"os"
 	"strings"
 	"testing"
 )
 
 func TestLogLevel(t *testing.T) {
 	testcases := []struct {
-		level  string
+		level  level
 		output string
 	}{
-		{"warn", "DEBUG"}, // when log level is set to WARN, DEBUG log must not be logged
-		{"fatal", "WARN"}, // when log level is set to FATAL, WARN or DEBUG log must not be logged
+		{Warn, "DEBUG"}, // when log level is set to WARN, DEBUG log must not be logged
+		{Fatal, "WARN"}, // when log level is set to FATAL, WARN or DEBUG log must not be logged
 	}
 
-	level := os.Getenv("LOG_LEVEL")
-
-	defer os.Setenv("LOG_LEVEL", level)
-
 	for i, v := range testcases {
-		_ = os.Setenv("LOG_LEVEL", v.level)
-
 		b := new(bytes.Buffer)
-		l := NewMockLogger(b)
+		l := NewMockLogger(b, v.level)
 
 		l.Warn("hello")
 		l.Warnf("%d", 1)
@@ -32,8 +25,54 @@ func TestLogLevel(t *testing.T) {
 		l.Debug("debug")
 		l.Debugf("%s", v.level)
 
-		if strings.Contains(v.output, b.String()) {
+		if strings.Contains(b.String(), v.output) {
 			t.Errorf("[TESTCASE%d]failed.expected %v\tgot %v\n", i+1, b.String(), v.output)
 		}
 	}
+}
+
+func TestLoggingLevels(t *testing.T) {
+	b := new(bytes.Buffer)
+	l := NewMockLogger(b, Debug)
+
+	{
+		b.Reset()
+
+		l.Info("hi")
+
+		if !strings.Contains(b.String(), "hi") {
+			t.Errorf("FAILED INFO, got: %v", b.String())
+		}
+	}
+
+	{
+		b.Reset()
+
+		l.Warn("WARN")
+
+		if !strings.Contains(b.String(), "WARN") {
+			t.Errorf("FAILED WARN, got: %v", b.String())
+		}
+	}
+
+	{
+		b.Reset()
+
+		l.Debug("DEBUG")
+
+		if !strings.Contains(b.String(), "DEBUG") {
+			t.Errorf("FAILED DEBUG, got: %v", b.String())
+		}
+	}
+
+	{
+		b.Reset()
+
+		l.Error("ERROR")
+
+		if !strings.Contains(b.String(), "ERROR") {
+			t.Errorf("FAILED ERROR, got: %v", b.String())
+		}
+	}
+
 }

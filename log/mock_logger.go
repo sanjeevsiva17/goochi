@@ -4,8 +4,9 @@ import (
 	"io"
 )
 
-func NewMockLogger(output io.Writer) Logger {
+func NewMockLogger(output io.Writer, level level) Logger {
 	return &logger{
-		out: output,
+		out:   output,
+		level: level,
 	}
 }

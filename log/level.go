@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"strings"
 )
 
@@ -49,14 +48,6 @@ func (l level) colorCode() int {
 	default:
 		return normalColor
 	}
-}
-
-func (l level) MarshalJSON() ([]byte, error) {
-	buffer := bytes.NewBufferString(`"`)
-	buffer.WriteString(l.String())
-	buffer.WriteString(`"`)
-
-	return buffer.Bytes(), nil
 }
 
 func getLevel(level string) level {
