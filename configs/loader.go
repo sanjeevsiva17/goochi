@@ -20,7 +20,7 @@ type fileOp interface {
 
 type config struct {
 	files  []string
-	logger log.Logger //TODO: remove logrus dependency when logging ticket is complete
+	logger log.Logger
 	fileOp fileOp
 }
 
