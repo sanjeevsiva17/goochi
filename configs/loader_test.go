@@ -3,8 +3,6 @@ package configs
 import (
 	"os"
 	"testing"
-
-	"github.com/sirupsen/logrus"
 )
 
 func TestLoad(t *testing.T) {
@@ -29,7 +27,7 @@ func TestLoad(t *testing.T) {
 		return
 	}
 
-	c := NewConfigProvider(logrus.New(), false, tempDir+"/.env", tempDir+"/.test.env")
+	c := NewConfigProvider(false, tempDir+"/.env", tempDir+"/.test.env")
 
 	testCases := []struct {
 		envName     string
@@ -74,7 +72,7 @@ func TestOverLoad(t *testing.T) {
 		return
 	}
 
-	c := NewConfigProvider(logrus.New(), true, tempDir+"/.env", tempDir+"/.test.env")
+	c := NewConfigProvider(true, tempDir+"/.env", tempDir+"/.test.env")
 
 	testCases := []struct {
 		envName     string

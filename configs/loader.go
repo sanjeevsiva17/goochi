@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	"github.com/goochi/log"
 )
 
 type Config interface {
@@ -20,18 +20,14 @@ type fileOp interface {
 
 type config struct {
 	files  []string
-	logger *logrus.Logger //TODO: remove logrus dependency when logging ticket is complete
+	logger log.Logger
 	fileOp fileOp
 }
 
-type logger interface {
-	Log(a ...interface{})
-}
-
-func NewConfigProvider(log *logrus.Logger, overload bool, fileName ...string) Config {
+func NewConfigProvider(overload bool, fileName ...string) Config {
 	c := &config{
 		files:  fileName,
-		logger: log,
+		logger: log.NewLogger(log.Info),
 	}
 
 	if overload {
