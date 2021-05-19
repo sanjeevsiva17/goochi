@@ -7,13 +7,16 @@ import (
 
 func main() {
 	l := log.NewLogger(log.Info)
-	_, err := datastores.NewMySQL(&datastores.Config{
+
+	_, err := datastores.NewSQL(&datastores.Config{
 		HostName: "localhost",
-		Username: "root",
-		Password: "password",
-		Database: "mysql",
-		Port:     2001,
+		Username: "postgres",
+		Password: "root123",
+		Database: "postgres",
+		Port:     "2005",
+		Dialect:  "postgres",
 	})
+
 	if err != nil {
 		l.Fatal(err)
 	}

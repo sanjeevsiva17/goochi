@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
-
-	"github.com/goochi/configs"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/goochi/configs"
+	_ "github.com/lib/pq"
 )
 
 type Config struct {
@@ -16,20 +16,38 @@ type Config struct {
 	Username string
 	Password string
 	Database string
-	Port     int
+	Port     string
+	Dialect  string
 }
 
-func NewMySQL(config *Config) (*sql.DB, error) {
+const (
+	MYSQL string = "mysql"
+	PGSQL string = "postgres"
+)
+
+func NewSQL(config *Config) (*sql.DB, error) {
 	if config == nil {
 		return nil, errors.New("config is required")
 	}
 
-	if config.Port == 0 {
-		config.Port = 3306
+	if config.Dialect == "" {
+		config.Dialect = MYSQL
 	}
 
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
-		config.Username, config.Password, config.HostName, config.Port, config.Database))
+	config.Dialect = strings.ToLower(config.Dialect)
+
+	if config.Port == "" {
+		config.Port = "3306"
+	}
+
+	connectionStr := getConnectionString(config)
+
+	db, err := sql.Open(config.Dialect, connectionStr)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
 	if err != nil {
 		return nil, err
 	}
@@ -45,13 +63,23 @@ func NewMySQLWithConfig(c configs.Config) (*sql.DB, error) {
 		return nil, errors.New("Host/Port is missing")
 	}
 
-	dbPort, _ := strconv.Atoi(c.Get("DB_PORT"))
-
-	return NewMySQL(&Config{
+	return NewSQL(&Config{
 		HostName: c.Get("DB_HOST"),
 		Username: c.Get("DB_USER"),
 		Password: c.Get("DB_PASSWORD"),
 		Database: c.Get("DB_NAME"),
-		Port:     dbPort,
+		Port:     port,
+		Dialect:  c.Get("DB_DIALECT"),
 	})
+}
+
+func getConnectionString(config *Config) string {
+	switch config.Dialect {
+	case PGSQL:
+		return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
+			config.HostName, config.Port, config.Username, config.Database, config.Password)
+	default:
+		return fmt.Sprintf("%s:%s@tcp(%s:%v)/%s?charset=utf8&parseTime=True&loc=Local",
+			config.Username, config.Password, config.HostName, config.Port, config.Database)
+	}
 }
