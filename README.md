@@ -1,4 +1,4 @@
-# bookish-meme
+# goochi
 
 For running tests, following docker containers are required:
 
