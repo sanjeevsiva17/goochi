@@ -2,4 +2,8 @@ module github.com/goochi
 
 go 1.16
 
-require golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
+require (
+	github.com/go-sql-driver/mysql v1.6.0
+	github.com/lib/pq v1.10.2
+	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
+)
